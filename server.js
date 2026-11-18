@@ -28,6 +28,7 @@ app.get('/api/vehicles', async (req, res) => {
             const linka = cols[1];
             const lngRaw = parseInt(cols[2], 10);
             const latRaw = parseInt(cols[3], 10);
+            const azimut = parseInt(cols[4], 10) || 0; // Nové: načtení azimutu
             const vehicleId = cols[6] || cols[4]; 
 
             if (!latRaw || !lngRaw || !vehicleId) return;
@@ -44,7 +45,8 @@ app.get('/api/vehicles', async (req, res) => {
             mapData.push({ 
                 id: vehicleId, lat, lng, linka, rychlost: 0, 
                 typ: dbInfo.typ, trakce: dbInfo.trakce, rok: dbInfo.rok,
-                trasa: trasaLinky
+                trasa: trasaLinky,
+                azimut: azimut // Nové: odeslání do mapy
             });
         });
         res.json(mapData);
