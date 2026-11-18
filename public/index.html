@@ -125,7 +125,7 @@
         function updateMap(vehicles) {
             const aktivniVozyId = new Set(vehicles.map(v => v.id));
             vehicles.forEach(v => {
-                let urlTrakce = 'bus';
+            let urlTrakce = 'bus';
                 if (v.trakce === 'Trolejbus') urlTrakce = 'trol';
                 else if (v.trakce === 'Tramvaj') urlTrakce = 'tram'; 
 
@@ -145,20 +145,37 @@
                     </div>
                 `;
 
+                // 1. Zjištění barvy
+                let barvaBodu = '#f59e0b';
+                const jeElektrobus = (v.trakce && v.trakce.toLowerCase().includes('elektrobus')) || (v.typ && v.typ.toLowerCase().includes('elektrobus'));
+                if (jeElektrobus) barvaBodu = '#22c55e';
+                else if (v.trakce === 'Tramvaj') barvaBodu = '#ef4444';
+                else if (v.trakce === 'Trolejbus') barvaBodu = '#3b82f6';
+
+                // 2. Tvorba SVG šipky natočené podle azimutu
+                const sipkaHtml = `
+                    <div style="transform: rotate(${v.azimut || 0}deg); transform-origin: center; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));">
+                        <svg width="20" height="24" viewBox="0 0 24 24">
+                            <path d="M12 2 L22 21 L12 17 L2 21 Z" fill="${barvaBodu}" stroke="white" stroke-width="2"/>
+                        </svg>
+                    </div>
+                `;
+
+                const sipkaIcon = L.divIcon({
+                    html: sipkaHtml,
+                    className: '', // Zabrání vykreslení výchozího bílého čtverce Leafletu
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12],
+                    popupAnchor: [0, -14]
+                });
+
+                // 3. Vykreslení nebo aktualizace značky na mapě
                 if (vehicleMarkers[v.id]) {
                     vehicleMarkers[v.id].setLatLng([v.lat, v.lng]);
+                    vehicleMarkers[v.id].setIcon(sipkaIcon); // Zaktualizuje natočení i polohu
                     vehicleMarkers[v.id].setPopupContent(popupContent);
                 } else {
-                    let barvaBodu = '#f59e0b';
-                    const jeElektrobus = (v.trakce && v.trakce.toLowerCase().includes('elektrobus')) || (v.typ && v.typ.toLowerCase().includes('elektrobus'));
-                    if (jeElektrobus) barvaBodu = '#22c55e';
-                    else if (v.trakce === 'Tramvaj') barvaBodu = '#ef4444';
-                    else if (v.trakce === 'Trolejbus') barvaBodu = '#3b82f6';
-
-                    const marker = L.circleMarker([v.lat, v.lng], {
-                        radius: 8, fillColor: barvaBodu, color: '#fff', weight: 2, fillOpacity: 0.9
-                    }).addTo(map);
-                    
+                    const marker = L.marker([v.lat, v.lng], { icon: sipkaIcon }).addTo(map);
                     marker.bindPopup(popupContent);
                     marker.vehicleData = v; 
                     vehicleMarkers[v.id] = marker;
