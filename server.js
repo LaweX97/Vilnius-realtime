@@ -29,7 +29,8 @@ app.get('/api/vehicles', async (req, res) => {
             const lngRaw = parseInt(cols[2], 10);
             const latRaw = parseInt(cols[3], 10);
             const azimut = parseInt(cols[4], 10) || 0; // Nové: načtení azimutu
-            const vehicleId = cols[6] || cols[4]; 
+            let rawId = cols[6] || "";
+            const vehicleId = rawId.replace(/\D/g, '');
 
             if (!latRaw || !lngRaw || !vehicleId) return;
 
